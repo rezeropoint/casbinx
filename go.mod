@@ -1,4 +1,4 @@
-module casbinx
+module github.com/rezeropoint/casbinx
 
 go 1.25.1
 

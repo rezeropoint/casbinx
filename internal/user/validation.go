@@ -1,7 +1,7 @@
 package user
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 	"fmt"
 )
 

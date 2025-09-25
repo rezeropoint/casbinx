@@ -1,7 +1,7 @@
 package role
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // Manager 角色权限管理器接口

@@ -3,7 +3,7 @@ package policy
 import (
 	"fmt"
 
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // policyManager 策略管理器实现

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // CasbinX CasbinX权限管理引擎接口

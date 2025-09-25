@@ -1,7 +1,7 @@
 package role
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // setRolePermissions 设置角色权限（内部方法）

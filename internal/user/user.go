@@ -1,7 +1,7 @@
 package user
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // Manager 用户权限管理器接口

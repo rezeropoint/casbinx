@@ -1,7 +1,7 @@
 package check
 
 import (
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 )
 
 // Manager 权限检查管理器接口

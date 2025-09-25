@@ -3,7 +3,7 @@ package role
 import (
 	"fmt"
 
-	"casbinx/core"
+	"github.com/rezeropoint/casbinx/core"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )

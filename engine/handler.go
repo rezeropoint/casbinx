@@ -5,11 +5,11 @@ import (
 	"log"
 	"os"
 
-	"casbinx/core"
-	"casbinx/internal/check"
-	"casbinx/internal/policy"
-	"casbinx/internal/role"
-	"casbinx/internal/user"
+	"github.com/rezeropoint/casbinx/core"
+	"github.com/rezeropoint/casbinx/internal/check"
+	"github.com/rezeropoint/casbinx/internal/policy"
+	"github.com/rezeropoint/casbinx/internal/role"
+	"github.com/rezeropoint/casbinx/internal/user"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"

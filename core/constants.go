@@ -34,6 +34,8 @@ func ParseSystemResource(s string) (Resource, error) {
 		return ResourcePermission, nil
 	case "role":
 		return ResourceRole, nil
+	case "organization":
+		return ResourceOrganization, nil
 	case "tag_user":
 		return ResourceTagUser, nil
 	case "tag_tenant":
@@ -55,14 +57,15 @@ var (
 
 // 基础资源常量（仅用于系统核心功能）
 const (
-	ResourceTenant      = Resource("tenant")       // 租户资源
-	ResourceSystem      = Resource("system")       // 系统资源
-	ResourceUser        = Resource("user")         // 用户资源
-	ResourcePermission  = Resource("permission")   // 权限资源
-	ResourceRole        = Resource("role")         // 角色资源
-	ResourceTagUser     = Resource("tag_user")     // 用户标签资源
-	ResourceTagTenant   = Resource("tag_tenant")   // 租户标签资源
-	ResourcePlaceholder = Resource("_placeholder") // 占位符，用于角色标识
+	ResourceTenant       = Resource("tenant")     // 租户资源
+	ResourceSystem       = Resource("system")     // 系统资源
+	ResourceUser         = Resource("user")       // 用户资源
+	ResourcePermission   = Resource("permission") // 权限资源
+	ResourceRole         = Resource("role")       // 角色资源
+	ResourceOrganization = Resource("organization")
+	ResourceTagUser      = Resource("tag_user")     // 用户标签资源
+	ResourceTagTenant    = Resource("tag_tenant")   // 租户标签资源
+	ResourcePlaceholder  = Resource("_placeholder") // 占位符，用于角色标识
 )
 
 // AllActions 基础权限操作列表 - 仅包含三种基本操作
@@ -74,13 +77,14 @@ var AllActions = []Action{
 
 // DefaultResourceActions 默认资源与可用操作的映射（仅用于系统核心资源）
 var DefaultResourceActions = map[Resource][]Action{
-	ResourceTenant:     {ActionRead, ActionWrite, ActionDelete},
-	ResourceSystem:     {ActionRead, ActionWrite, ActionDelete},
-	ResourceUser:       {ActionRead, ActionWrite, ActionDelete},
-	ResourcePermission: {ActionRead, ActionWrite, ActionDelete},
-	ResourceRole:       {ActionRead, ActionWrite, ActionDelete},
-	ResourceTagUser:    {ActionRead, ActionWrite, ActionDelete},
-	ResourceTagTenant:  {ActionRead, ActionWrite, ActionDelete},
+	ResourceTenant:       {ActionRead, ActionWrite, ActionDelete},
+	ResourceSystem:       {ActionRead, ActionWrite, ActionDelete},
+	ResourceUser:         {ActionRead, ActionWrite, ActionDelete},
+	ResourcePermission:   {ActionRead, ActionWrite, ActionDelete},
+	ResourceRole:         {ActionRead, ActionWrite, ActionDelete},
+	ResourceOrganization: {ActionRead, ActionWrite, ActionDelete},
+	ResourceTagUser:      {ActionRead, ActionWrite, ActionDelete},
+	ResourceTagTenant:    {ActionRead, ActionWrite, ActionDelete},
 }
 
 // GetResourceActions 获取指定资源的可用操作列表

@@ -105,8 +105,23 @@ func (m *roleManager) UpdateRole(operatorKey, roleKey, roleName, description, te
 		return fmt.Errorf("角色 '%s' 不存在", roleKey)
 	}
 
-	// 检查是否为系统角色（包含系统权限）
-	if hasSystemPerms, _ := m.HasSystemPermissions(roleKey); hasSystemPerms {
+	// 获取角色的旧权限
+	oldPermissions, err := m.GetRolePermissions(roleKey)
+	if err != nil {
+		return fmt.Errorf("获取角色旧权限失败: %v", err)
+	}
+
+	// 找出新增和删除的权限
+	addedPermissions := findAddedPermissionsInRole(oldPermissions, permissions)
+	removedPermissions := findRemovedPermissionsInRole(oldPermissions, permissions)
+
+	// 检查是否尝试新增系统权限
+	if m.hasSystemPermissionsInList(addedPermissions) {
+		return core.ErrSystemRoleImmutable
+	}
+
+	// 检查是否尝试删除系统权限
+	if m.hasSystemPermissionsInList(removedPermissions) {
 		return core.ErrSystemRoleImmutable
 	}
 
@@ -353,8 +368,23 @@ func (m *roleManager) SetRolePermissions(roleKey string, permissions []core.Perm
 		return fmt.Errorf("'%s' 不是一个有效的角色", roleKey)
 	}
 
-	// 检查是否为系统角色（包含系统权限）
-	if hasSystemPerms, _ := m.HasSystemPermissions(roleKey); hasSystemPerms {
+	// 获取角色的旧权限
+	oldPermissions, err := m.GetRolePermissions(roleKey)
+	if err != nil {
+		return fmt.Errorf("获取角色旧权限失败: %v", err)
+	}
+
+	// 找出新增和删除的权限
+	addedPermissions := findAddedPermissionsInRole(oldPermissions, permissions)
+	removedPermissions := findRemovedPermissionsInRole(oldPermissions, permissions)
+
+	// 检查是否尝试新增系统权限
+	if m.hasSystemPermissionsInList(addedPermissions) {
+		return core.ErrSystemRoleImmutable
+	}
+
+	// 检查是否尝试删除系统权限
+	if m.hasSystemPermissionsInList(removedPermissions) {
 		return core.ErrSystemRoleImmutable
 	}
 
@@ -449,4 +479,48 @@ func (m *roleManager) GetAllGroupingPolicies(tenantKey string) ([]core.GroupingP
 	}
 
 	return filteredGroupings, nil
+}
+
+// === 权限对比辅助函数 ===
+
+// permissionExistsInList 检查权限是否存在于权限列表中
+func permissionExistsInList(permission core.Permission, permissions []core.Permission) bool {
+	for _, p := range permissions {
+		if p.Resource == permission.Resource && p.Action == permission.Action {
+			return true
+		}
+	}
+	return false
+}
+
+// findAddedPermissionsInRole 找出新增的权限（在新权限中但不在旧权限中）
+func findAddedPermissionsInRole(oldPermissions, newPermissions []core.Permission) []core.Permission {
+	var added []core.Permission
+	for _, newPerm := range newPermissions {
+		if !permissionExistsInList(newPerm, oldPermissions) {
+			added = append(added, newPerm)
+		}
+	}
+	return added
+}
+
+// findRemovedPermissionsInRole 找出删除的权限（在旧权限中但不在新权限中）
+func findRemovedPermissionsInRole(oldPermissions, newPermissions []core.Permission) []core.Permission {
+	var removed []core.Permission
+	for _, oldPerm := range oldPermissions {
+		if !permissionExistsInList(oldPerm, newPermissions) {
+			removed = append(removed, oldPerm)
+		}
+	}
+	return removed
+}
+
+// hasSystemPermissionsInList 检查权限列表中是否包含系统权限
+func (m *roleManager) hasSystemPermissionsInList(permissions []core.Permission) bool {
+	for _, perm := range permissions {
+		if m.isSystemPermission(perm) {
+			return true
+		}
+	}
+	return false
 }

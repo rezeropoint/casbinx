@@ -381,10 +381,27 @@ func (c *casbinxClient) UpdateRole(operatorKey, roleKey, roleName, description, 
 		return err
 	}
 
-	// 安全检查：验证角色中的权限
-	for _, permission := range permissions {
+	// 获取角色的旧权限
+	oldPermissions, err := c.roleManager.GetRolePermissions(roleKey)
+	if err != nil {
+		return fmt.Errorf("获取角色旧权限失败: %w", err)
+	}
+
+	// 找出新增和删除的权限
+	addedPermissions := findAddedPermissions(oldPermissions, permissions)
+	removedPermissions := findRemovedPermissions(oldPermissions, permissions)
+
+	// 安全检查：只验证新增的权限
+	for _, permission := range addedPermissions {
 		if err := c.securityValidator.ValidatePermissionGrant(operatorKey, roleKey, tenantKey, permission); err != nil {
-			return fmt.Errorf("角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
+			return fmt.Errorf("新增角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
+		}
+	}
+
+	// 安全检查：只验证删除的权限（防止删除系统权限）
+	for _, permission := range removedPermissions {
+		if err := c.securityValidator.ValidatePermissionRevoke(operatorKey, roleKey, tenantKey, permission); err != nil {
+			return fmt.Errorf("删除角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
 		}
 	}
 
@@ -470,10 +487,24 @@ func (c *casbinxClient) SetRolePermissions(operatorKey, roleKey string, permissi
 	// 使用角色所属的租户域（不会为空，默认为"*"表示全局角色）
 	roleTenantKey := role.TenantKey
 
-	// 安全检查：验证所有权限
-	for _, permission := range permissions {
+	// 获取角色的旧权限
+	oldPermissions := role.Permissions
+
+	// 找出新增和删除的权限
+	addedPermissions := findAddedPermissions(oldPermissions, permissions)
+	removedPermissions := findRemovedPermissions(oldPermissions, permissions)
+
+	// 安全检查：只验证新增的权限
+	for _, permission := range addedPermissions {
 		if err := c.securityValidator.ValidatePermissionGrant(operatorKey, roleKey, roleTenantKey, permission); err != nil {
-			return fmt.Errorf("角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
+			return fmt.Errorf("新增角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
+		}
+	}
+
+	// 安全检查：只验证删除的权限（防止删除系统权限）
+	for _, permission := range removedPermissions {
+		if err := c.securityValidator.ValidatePermissionRevoke(operatorKey, roleKey, roleTenantKey, permission); err != nil {
+			return fmt.Errorf("删除角色权限验证失败 %s:%s - %w", permission.Resource, permission.Action, err)
 		}
 	}
 
@@ -616,4 +647,38 @@ func (c *casbinxClient) isTenantInitializationScenario(userKey, roleKey, tenantK
 // RefreshPolicy 手动刷新策略（从数据库重新加载）
 func (c *casbinxClient) RefreshPolicy() error {
 	return c.policyManager.RefreshPolicy()
+}
+
+// === 权限对比辅助函数 ===
+
+// permissionExists 检查权限是否存在于权限列表中
+func permissionExists(permission core.Permission, permissions []core.Permission) bool {
+	for _, p := range permissions {
+		if p.Resource == permission.Resource && p.Action == permission.Action {
+			return true
+		}
+	}
+	return false
+}
+
+// findAddedPermissions 找出新增的权限（在新权限中但不在旧权限中）
+func findAddedPermissions(oldPermissions, newPermissions []core.Permission) []core.Permission {
+	var added []core.Permission
+	for _, newPerm := range newPermissions {
+		if !permissionExists(newPerm, oldPermissions) {
+			added = append(added, newPerm)
+		}
+	}
+	return added
+}
+
+// findRemovedPermissions 找出删除的权限（在旧权限中但不在新权限中）
+func findRemovedPermissions(oldPermissions, newPermissions []core.Permission) []core.Permission {
+	var removed []core.Permission
+	for _, oldPerm := range oldPermissions {
+		if !permissionExists(oldPerm, newPermissions) {
+			removed = append(removed, oldPerm)
+		}
+	}
+	return removed
 }

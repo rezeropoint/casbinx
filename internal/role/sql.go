@@ -21,9 +21,9 @@ type roleMetadata struct {
 // initDB 初始化数据库，创建角色元数据表
 func initDB(dbConn sqlx.SqlConn) error {
 	// 先检查表是否存在，如果存在就跳过创建
-	exists, err := tableExists(dbConn, "roles")
+	exists, err := tableExists(dbConn, "system_roles")
 	if err != nil {
-		return fmt.Errorf("检查roles表是否存在失败: %v", err)
+		return fmt.Errorf("检查system_roles表是否存在失败: %v", err)
 	}
 
 	if exists {
@@ -32,7 +32,7 @@ func initDB(dbConn sqlx.SqlConn) error {
 
 	// 表不存在，创建表和索引
 	createRolesTableSQL := `
-CREATE TABLE roles (
+CREATE TABLE system_roles (
     role_key VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -43,13 +43,13 @@ CREATE TABLE roles (
     UNIQUE(role_key, tenant_key)
 );
 
-CREATE INDEX idx_roles_tenant_key ON roles(tenant_key);
-CREATE INDEX idx_roles_created_at ON roles(created_at);
+CREATE INDEX idx_system_roles_tenant_key ON system_roles(tenant_key);
+CREATE INDEX idx_system_roles_created_at ON system_roles(created_at);
 `
 
 	_, err = dbConn.Exec(createRolesTableSQL)
 	if err != nil {
-		return fmt.Errorf("创建roles表失败: %v", err)
+		return fmt.Errorf("创建system_roles表失败: %v", err)
 	}
 
 	return nil

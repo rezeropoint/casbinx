@@ -76,7 +76,7 @@ func (m *userManager) validateRoleExists(roleKey string) error {
 // isRoleExistsInDB 检查角色是否在数据库中存在
 func (m *userManager) isRoleExistsInDB(roleKey string) (bool, error) {
 	var count int
-	countSQL := `SELECT COUNT(*) FROM roles WHERE role_key = $1`
+	countSQL := `SELECT COUNT(*) FROM system_roles WHERE role_key = $1`
 	err := m.dbConn.QueryRow(&count, countSQL, roleKey)
 	if err != nil {
 		return false, err

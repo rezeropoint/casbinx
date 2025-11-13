@@ -173,7 +173,7 @@ func (m *roleManager) isSystemPermission(permission core.Permission) bool {
 // createRoleMetadata 在数据库中创建角色元数据
 func (m *roleManager) createRoleMetadata(roleKey, name, description, tenantKey, createdBy string) error {
 	insertSQL := `
-		INSERT INTO roles (role_key, name, description, tenant_key, created_by)
+		INSERT INTO system_roles (role_key, name, description, tenant_key, created_by)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := m.dbConn.Exec(insertSQL, roleKey, name, description, tenantKey, createdBy)
@@ -183,7 +183,7 @@ func (m *roleManager) createRoleMetadata(roleKey, name, description, tenantKey, 
 // updateRoleMetadata 更新数据库中的角色元数据
 func (m *roleManager) updateRoleMetadata(roleKey, name, description string) error {
 	updateSQL := `
-		UPDATE roles
+		UPDATE system_roles
 		SET name = $2, description = $3, updated_at = CURRENT_TIMESTAMP
 		WHERE role_key = $1
 	`
@@ -193,7 +193,7 @@ func (m *roleManager) updateRoleMetadata(roleKey, name, description string) erro
 
 // deleteRoleMetadata 删除数据库中的角色元数据
 func (m *roleManager) deleteRoleMetadata(roleKey string) error {
-	deleteSQL := `DELETE FROM roles WHERE role_key = $1`
+	deleteSQL := `DELETE FROM system_roles WHERE role_key = $1`
 	_, err := m.dbConn.Exec(deleteSQL, roleKey)
 	return err
 }
@@ -203,7 +203,7 @@ func (m *roleManager) getRoleMetadata(roleKey string) (*roleMetadata, error) {
 	var role roleMetadata
 	selectSQL := `
 		SELECT role_key, name, description, tenant_key, created_at, updated_at, created_by
-		FROM roles WHERE role_key = $1
+		FROM system_roles WHERE role_key = $1
 	`
 	err := m.dbConn.QueryRow(&role, selectSQL, roleKey)
 	if err != nil {
@@ -222,13 +222,13 @@ func (m *roleManager) listRoleMetadata(tenantKey string) ([]*roleMetadata, error
 		// 获取所有角色
 		selectSQL = `
 			SELECT role_key, name, description, tenant_key, created_at, updated_at, created_by
-			FROM roles ORDER BY created_at DESC
+			FROM system_roles ORDER BY created_at DESC
 		`
 	} else {
 		// 获取指定租户的角色（包括全局角色）
 		selectSQL = `
 			SELECT role_key, name, description, tenant_key, created_at, updated_at, created_by
-			FROM roles WHERE tenant_key = $1 OR tenant_key = '*'
+			FROM system_roles WHERE tenant_key = $1 OR tenant_key = '*'
 			ORDER BY created_at DESC
 		`
 		args = append(args, tenantKey)
@@ -244,7 +244,7 @@ func (m *roleManager) listRoleMetadata(tenantKey string) ([]*roleMetadata, error
 // isRoleExistsInDB 检查角色是否在数据库中存在
 func (m *roleManager) isRoleExistsInDB(roleKey string) (bool, error) {
 	var count int
-	countSQL := `SELECT COUNT(*) FROM roles WHERE role_key = $1`
+	countSQL := `SELECT COUNT(*) FROM system_roles WHERE role_key = $1`
 	err := m.dbConn.QueryRow(&count, countSQL, roleKey)
 	if err != nil {
 		return false, err
